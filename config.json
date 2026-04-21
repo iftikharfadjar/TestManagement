@@ -1,0 +1,6 @@
+{
+  "DB_TYPE": "sqlite",
+  "PORT": "3000",
+  "DB_CONN_STRING": "file:test.db?cache=shared&mode=rwc",
+  "JWT_SECRET": "my-development-secret-key-12345678"
+}
