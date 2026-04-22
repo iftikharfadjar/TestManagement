@@ -4,15 +4,22 @@ import (
 	"database/sql"
 	"log"
 
-	"boilerplate/services/auth/domain"
+	authDomain "boilerplate/services/auth/domain"
+	testDomain "boilerplate/services/test/domain"
 	"boilerplate/shared/adapter/pocketbase"
 	sqliteAdapter "boilerplate/shared/adapter/sqlite_adapter"
 	"boilerplate/shared/config"
 	"boilerplate/shared/db"
 )
 
-func DbConnSwitcher(cfg *config.Config) domain.AuthRepository {
-	var authRepo domain.AuthRepository
+type Repositories struct {
+	Auth authDomain.AuthRepository
+	Test testDomain.TestRepository
+}
+
+func DbConnSwitcher(cfg *config.Config) *Repositories {
+	repos := &Repositories{}
+
 	switch cfg.DBType {
 	case "postgres":
 		dbConn, err := sql.Open("postgres", cfg.DBConnString)
@@ -20,7 +27,8 @@ func DbConnSwitcher(cfg *config.Config) domain.AuthRepository {
 			log.Fatal(err)
 		}
 		runMigrations(dbConn, "postgres", cfg.DBConnString)
-		authRepo = sqliteAdapter.NewAuthRepository(dbConn, cfg.JWTSecret)
+		repos.Auth = sqliteAdapter.NewAuthRepository(dbConn, cfg.JWTSecret)
+		repos.Test = sqliteAdapter.NewTestRepository(dbConn)
 
 	case "sqlite":
 		dbConn, err := sql.Open("sqlite", cfg.DBConnString)
@@ -28,13 +36,14 @@ func DbConnSwitcher(cfg *config.Config) domain.AuthRepository {
 			log.Fatal(err)
 		}
 		runMigrations(dbConn, "sqlite", cfg.DBConnString)
-		authRepo = sqliteAdapter.NewAuthRepository(dbConn, cfg.JWTSecret)
+		repos.Auth = sqliteAdapter.NewAuthRepository(dbConn, cfg.JWTSecret)
+		repos.Test = sqliteAdapter.NewTestRepository(dbConn)
 
 	case "pocketbase":
 		fallthrough
 	default:
 		pbApp := db.Init()
-		authRepo = pocketbase.NewAuthRepository(pbApp)
+		repos.Auth = pocketbase.NewAuthRepository(pbApp)
 
 		go func() {
 			if err := pbApp.Start(); err != nil {
@@ -42,5 +51,5 @@ func DbConnSwitcher(cfg *config.Config) domain.AuthRepository {
 			}
 		}()
 	}
-	return authRepo
+	return repos
 }

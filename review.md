@@ -1,47 +1,26 @@
-# 📋 Restructuring Proposal: Layered → Feature-Based
+Create module test service with crud (create, read, update, delete) +  list of tests
 
-## Status: ✅ COMPLETED
+create test folder under services folder.
+same with structure files of auth module in service folder
 
-### Final Structure
+for data test, it have below fields:
+TestId : string, primary key
+TestName : string
+Description : string
+Steps : string
+Status : string
+Remarks : string
+CreatedBy : string
+CreatedAt : Date
+UpdatedBy : string
+UpdatedAt : Date
+IsActive : boolean
 
-```
-cmd/server/main.go
+those data will same with response and requests body
 
-be/auth/                    # Feature: Authentication
-├── domain/user.go          # User, AuthRepository, AuthUseCase
-├── usecase/service.go     # Business logic
-└── delivery/
-    ├── rest/            # HTTP handlers
-    └── graphql/       # GraphQL resolvers
-
-shared/                     # Cross-cutting
-├── config/config.go      # config loading
-├── jwt/jwt.go         # JWT utilities
-├── middleware/auth.go  # Fiber JWT middleware
-├── db/db.go          # PocketBase init
-└── adapter/          # DB Adapters
-    ├── pocketbase/
-    └── sqlite_adapter/
-        └── sqlc/
-
-graph/                     # GraphQL (unchanged)
-sql/                       # migrations, schema
-```
-
-### Migration Complete
-| From | To |
-|------|-----|
-| `internal/domain/auth.go` | `be/auth/domain/user.go` |
-| `internal/usecase/auth/service.go` | `be/auth/usecase/service.go` |
-| `internal/rest/*` | `be/auth/delivery/rest/` |
-| `internal/graphql/*` | `be/auth/delivery/graphql/` |
-| `internal/repository/pocketbase/*` | `shared/adapter/pocketbase/` |
-| `internal/repository/sql_adapter/*` | `shared/adapter/sqlite_adapter/` |
-| `pkg/config/*` | `shared/config/` |
-| `pkg/jwt/*` | `shared/jwt/` |
-| `internal/auth/*` | `shared/middleware/` |
-| `internal/db/*` | `shared/db/` |
-
-### Verification
-- `go build ./...` ✅
-- `go test ./...` ✅
+for endpoint:
+GET /api/v1/test
+POST /api/v1/test
+GET /api/v1/test/:id
+PUT /api/v1/test/:id
+DELETE /api/v1/test/:id

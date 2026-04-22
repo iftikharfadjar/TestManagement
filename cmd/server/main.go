@@ -11,8 +11,10 @@ import (
 	_ "modernc.org/sqlite"
 
 	"boilerplate/services/auth/delivery/graphql"
-	"boilerplate/services/auth/delivery/rest"
+	authRest "boilerplate/services/auth/delivery/rest"
+	testRest "boilerplate/services/test/delivery/rest"
 	"boilerplate/services/auth/usecase"
+	testUsecase "boilerplate/services/test/usecase"
 	"boilerplate/shared/config"
 )
 
@@ -20,14 +22,18 @@ func main() {
 	cfg := config.LoadConfig()
 	log.Printf("Booting with DB_TYPE: %s", cfg.DBType)
 
-	authRepo := DbConnSwitcher(cfg)
+	repos := DbConnSwitcher(cfg)
 
-	authUseCase := usecase.NewAuthUseCase(authRepo)
+	authUseCase := usecase.NewAuthUseCase(repos.Auth)
+	testUseCase := testUsecase.NewTestUseCase(repos.Test)
 
 	app := fiber.New()
 
-	authHandler := rest.NewAuthHandler(authUseCase)
+	authHandler := authRest.NewAuthHandler(authUseCase)
 	authHandler.SetupRoutes(app)
+
+	testHandler := testRest.NewTestHandler(testUseCase)
+	testHandler.SetupRoutes(app)
 
 	graphql.SetupRoutes(app)
 
